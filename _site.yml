@@ -11,7 +11,7 @@ navbar:
     - text: "About"
       href: index.html
     - text: "References"
-      href: References.html
+      href: references.html
     - text: "Research Highlights"
       href: highlights.html
     - text: "Reproductive Phases"
