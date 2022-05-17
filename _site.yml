@@ -1,0 +1,36 @@
+name: "."
+title: "Fish Gonad Staging"
+description: |
+  Training and learning resource for fish reproduction assessments.
+favicon: favicon.ico
+output_dir: "docs"
+base_url: https://noaa-lhp.github.io/Fish-Gonad-Staging/
+navbar:
+  search: false
+  left:
+    - text: "About"
+      href: index.html
+    - text: "References"
+      href: References.html
+    - text: "Research Highlights"
+      href: highlights.html
+    - text: "Reproductive Phases"
+      href: reproductivephases.html
+    - text: "Developmental Sequences"
+      href: sequences.html
+    - text: "Oddities & Issues"
+      href: oddities.html
+    - text: "Analyses"
+      href: analyses.html    
+    - icon: fab fa-github
+      href: https://github.com/NOAA-LHP/Fish-Gonad-Staging
+theme: theme.css
+output:
+  distill::distill_article:
+    includes:
+      in_header:
+      - _header.html
+collections:
+  posts: 
+    categories: true
+    share: [twitter, linkedin]

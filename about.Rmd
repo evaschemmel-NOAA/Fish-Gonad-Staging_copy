@@ -1,0 +1,22 @@
+---
+title: "References"
+---
+
+This is not a complete list of references, but rather some that you may find handy while learning reproduction assessments.
+
+### Oocyte morphology and stages
+
+[Grier et al 2009](https://drive.google.com/file/d/1XPBpsYk76ZMDnJyL5BQ7HuNaCDIU5YRW/view?usp=sharing). The ovary, folliculogenesis, and oogenesis in teleosts.
+
+[Grier et al 2018](https://drive.google.com/file/d/1H6SHT_L-UIuygzl_JFedUgUgJ4nmSlml/view?usp=sharing)  Oocyte Development and Staging in the Florida Bass, **Micropterus floridanus** (LeSueur, 1822), with Comments on the Evolution of Pelagic and Demersal Eggs in Bony Fishes. Reference has detailed images of oocyte morphology.
+
+[McMillen 2007](https://drive.google.com/file/d/1nZd2RUWvJCD9BJEgyc00mns1ivRrgBvz/view?usp=sharing) Female reproductive systems.
+
+[Wallace & Selman](https://drive.google.com/file/d/1U8RQSfAVVWFBEAMZLLnptmqI1CMr1HLe/view?usp=sharing) Cellular and dynamic aspects of oocyte growth in teleosts.
+
+
+### Fecundity
+
+[Thorsen & Kjesbu 2001](https://drive.google.com/file/d/1FC3NSAcdem6_QEwQT1cykpFt0ycqxGs0/view?usp=sharing) A rapid method for estimation of oocyte size and potential fecundity.
+
+[Arthur et al 2022](https://drive.google.com/file/d/1l1Ax4BFxslA-mUAEpvelS7mkQSsPez0F/view?usp=sharing) Alaskan Yelloweye Rockfish Fecundity Revealed through an Automated Egg Count and Digital Imagery Method.

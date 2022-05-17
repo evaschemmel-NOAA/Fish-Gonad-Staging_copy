@@ -1,0 +1,34 @@
+---
+title: "Oddities & Issues"
+
+---
+<br>
+
+### Handling effects
+
+<br>
+
+### Parasites
+
+<br>
+
+### Staining 
+
+Several different stains are used for fish histological gonad staging. 
+
+
+- Hematoxylin and eosin is one of the most common stains. Hematoxylin stains cell nuclei and DNA a purplish blue and eosin stains cytoplasm and extracellular matrix pink.  
+![](images/ahole_h-e.png){width=50%}
+
+Figure 1.  Hawaii flagtail, *Kuhlia xenura*, actively spawning with hyrdrated oocytes, stained with hematoxylin and eosin. Photo credit: Eva Schemmel.
+
+- Toluidine blue is a thiazine metachromatic dye with high affinity for acidic tissue, staining DNA and cell nuclei darker than other tissues.  
+![](images/ahole_t-blue.png){width=50%}  
+
+
+Figure 2.  Hawaii flagtail, *Kuhlia xenura*, actively spawning with hyrdrated oocytes, stained with toluidine blue. Photo credit: Eva Schemmel.
+
+- Schiff’s Mallory Trichrome
+
+
+- 
