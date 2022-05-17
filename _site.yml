@@ -4,7 +4,7 @@ description: |
   Training and learning resource for fish reproduction assessments.
 favicon: favicon.ico
 output_dir: "docs"
-base_url: https://noaa-lhp.github.io/Fish-Gonad-Staging/
+base_url: https://github.com/evaschemmel-NOAA/Fish-Gonad-Staging
 navbar:
   search: false
   left:
@@ -23,7 +23,7 @@ navbar:
     - text: "Analyses"
       href: analyses.html    
     - icon: fab fa-github
-      href: https://github.com/NOAA-LHP/Fish-Gonad-Staging
+      href: https://github.com/evaschemmel-NOAA/Fish-Gonad-Staging/tree/main/analyses
 theme: theme.css
 output:
   distill::distill_article:

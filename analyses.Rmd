@@ -6,7 +6,7 @@ title: "Analyses"
 There are many different ways to go about reproductive analyses in R. We have created a repository for sharing R code for reproductive assessments. Each folder in the repository is a different contributed analysis with corresponding data. This repository is hopefully a launching off point for your own analyses and a way to share ideas and resources. An example of code shared in the repository is below. 
 
 <div>
-<div style="float: left">[Repository](https://github.com/NOAA-LHP/Gonad-Staging/tree/main/Gonad-Staging/analyses)</div> 
+<div style="float: left">[Repository](https://github.com/evaschemmel-NOAA/Fish-Gonad-Staging/tree/main/analyses)</div> 
 
 
 <p></p>
