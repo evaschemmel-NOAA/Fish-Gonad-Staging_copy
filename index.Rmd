@@ -4,6 +4,8 @@ title: "Fish Gonad Staging"
 
 This resource is meant to be an overview on the assessment of fish histological gonad staging. Examples are provided by many contributing researchers and allow for  different types of reproductive modes and strategies exhibited in fishes to be compared. This is not meant to be a complete resource. We recommend reviewing the references posted and recent literature for further learning and investigation.
 
-![](images/manini_banner.png){width=100%}
+![](images/manini_gonad.png){width=75%}
+
+
 
 

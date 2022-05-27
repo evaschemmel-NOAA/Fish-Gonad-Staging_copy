@@ -2,6 +2,13 @@
 title: "Oddities & Issues"
 
 ---
+
+### Tissue Identification
+Tissues other than gonad may end up in your sample. A cross section of *Eviota susansae*, a small (<5cm goby) showing different types of tissue. Bones have been decalcified prior to histology.
+
+![](images/E.susanae_cross_section.png){width=70%}  
+Image by E. Schemmel
+
 <br>
 
 ### Handling effects
