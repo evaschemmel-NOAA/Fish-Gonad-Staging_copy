@@ -2,7 +2,7 @@
 title: "Developmental Sequences"
 ---
 
-This is the landing page for exploring developmental sequences for a variety of species with differing gender systems (gonochoristic, hermaphroditic), oocyte developement (synchronous, asynchronuos, group synchronous), and spawning types (egg layers [demersal or pelagic], live bearers). 
+This is the landing page for exploring developmental sequences for a variety of species with differing gender systems (gonochoristic, hermaphroditic), oocyte development (synchronous, asynchronous, group synchronous), and spawning types (egg layers [demersal or pelagic], live bearers). 
 
 <br>
 
