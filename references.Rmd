@@ -20,10 +20,19 @@ This is not a complete list of references, but rather some that you may find han
 ### Hermaphroditism 
 [Sadovy & Shapiro 1987](https://drive.google.com/file/d/1vPkSpAwjbB03KSUeUZ1b67WLiFhP8cdt/view?usp=sharing) Criteria for the diagnosis of hermaphroditism in fishes.
 
-[Nakamura et al. 2005](https://drive.google.com/file/d/1dhStmOWPnOMz65w2LBPF34qA55F-Jgvk/view?usp=sharing) Sex chagne in coral reef fish.
+[Nakamura et al. 2005](https://drive.google.com/file/d/1dhStmOWPnOMz65w2LBPF34qA55F-Jgvk/view?usp=sharing) Sex change in coral reef fish.
+
+### Histology
+[Atlas of fish histology and histopathology](https://studylib.net/doc/8727800/atlas-of-fish-histology-and-histopathology). Authors: Galit Sharon and Dina Zilberg.
+
+[Fish Histology Manual v4](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://trainingcenter.fws.gov/resources/course-resources/fish-histology/Fish_Histology_Manual_v4.pdf). Contributing authors: Sonia Mumford; Jerry Heidel; Charlie Smith; John Morrison; Beth MacConnell; Vicki Blazer.
+
+[4th Workshop on gonadal histology of fishes](https://digital.csic.es/handle/10261/24937?locale=en). Wyanski, D. M. and N. Brown-Peterson. 
+
+[Education Guide: Special Stains and H & E Second Edition](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.agilent.com/cs/library/technicaloverviews/public/08066_special_stains_eduguide.pdf). Editors: Kumar, G. L. and J. A. Kiernan eds. This is a guide to stains that is not fish specific.
 
 ### Fecundity
 
-[Thorsen & Kjesbu 2001](https://drive.google.com/file/d/1vKhqiiosk-aV25EX2Pn8jJchnSPQZyEo/view?usp=sharing) A rapid method for estimation of oocyte size and potential fecundity.
+[Thorsen & Kjesbu 2001](https://drive.google.com/file/d/1vKhqiiosk-aV25EX2Pn8jJchnSPQZyEo/view?usp=sharing). A rapid method for estimation of oocyte size and potential fecundity.
 
 [Arthur et al 2022](https://drive.google.com/file/d/1abJgJZgJMMtTuVDMaBN-f3OAVCjN3OIJ/view?usp=sharing) Alaskan Yelloweye Rockfish Fecundity Revealed through an Automated Egg Count and Digital Imagery Method.
