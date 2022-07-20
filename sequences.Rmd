@@ -2,8 +2,32 @@
 title: "Developmental Sequences"
 ---
 
+## Mugiliformes
+### Mugilidae
+
 This is the landing page for exploring developmental sequences for a variety of species with differing gender systems (gonochoristic, hermaphroditic), oocyte development (synchronous, asynchronous, group synchronous), and spawning types (egg layers [demersal or pelagic], live bearers). 
 
+<br>
+
+![](images/kanda.png){width=25%}  [*Osteomugil engeli* (Kanda Mullet)](https://drive.google.com/file/d/1D1GlNkhDop8oo7KlZ_fMVnk6rVcgUGOh/view?usp=sharing).  [Publication see Fig. 2 & Fig. 3](https://link.springer.com/article/10.1007/s10641-019-00853-y)
+ 
+ <br>
+ 
+## Perciformes
+
+### Carangidae
+<br>
+[*Decapterus punctatus* (Round Scad) publication see Fig. 4](http://dx.doi.org/10.1007/s00227-001-0759-4 )
+<br>
+
+### Kuhliidae
+<br>
+
+ ![](images/kuhlia.jpg){width=25%}  [*Kuhlia xenura* (Hawaii flagtail)](https://drive.google.com/file/d/12jMayyP5BzFZ2_ug9O-kG8HBP1fShI7w/view?usp=sharing)
+
+<br>
+
+### Serranidae
 <br>
 
 ![](images/roi.png){width=25%}  [*Cephalopholis argus* (Peacock Grouper)](https://drive.google.com/file/d/12aLBaZq41gWny1YG75hJJ2zCpA8c6roV/view?usp=sharing)
@@ -11,14 +35,8 @@ This is the landing page for exploring developmental sequences for a variety of 
 
 <br>
 
-![](images/kuhlia.jpg){width=25%}  [*Kuhlia xenura* (Hawaii flagtail)](https://drive.google.com/file/d/12jMayyP5BzFZ2_ug9O-kG8HBP1fShI7w/view?usp=sharing)
-
+### Lutjanidae
 <br>
-
-![](images/kanda.png){width=25%}  [*Osteomugil engeli* (Kanda Mullet)](https://drive.google.com/file/d/1D1GlNkhDop8oo7KlZ_fMVnk6rVcgUGOh/view?usp=sharing)
- 
- <br>
- 
 
 ![](images/gindai.png){width=25%}  [*Prisitpomoides zonatus* (Gindai or Oblique-Banded Snapper)](https://drive.google.com/file/d/1UKJy_CWqEUjtIK1jaOa_pzXwWP7qftJU/view?usp=sharing)
 
