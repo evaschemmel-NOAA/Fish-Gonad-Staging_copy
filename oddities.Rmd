@@ -22,7 +22,10 @@ Image by E. Schemmel
 ### Staining 
 
 Several different stains are used for fish histological gonad staging. 
+A good reference to compare and explore staines is the [Education Guide: Special Stains and H & E Second Edition](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.agilent.com/cs/library/technicaloverviews/public/08066_special_stains_eduguide.pdf). Editors: Kumar, G. L. and J. A. Kiernan eds. This is a guide to stains that is not fish specific.
 
+
+Below are some examples of the same reproductive phase with different stains.
 
 - Hematoxylin and eosin is one of the most common stains. Hematoxylin stains cell nuclei and DNA a purplish blue and eosin stains cytoplasm and extracellular matrix pink.  
 ![](images/ahole_h-e.png){width=50%}
@@ -37,5 +40,4 @@ Figure 2.  Hawaii flagtail, *Kuhlia xenura*, actively spawning, stained with tol
 
 - Schiff’s Mallory Trichrome
 
-
-- 
+Coming soon...
