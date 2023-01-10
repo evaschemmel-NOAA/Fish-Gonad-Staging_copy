@@ -50,16 +50,17 @@ pre.numberSource code > span > a:first-child::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {   }
+  { color: #00769e; background-color: #f1f3f5; }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
+code span { color: #00769e; } /* Normal */
 code span.al { color: #ad0000; } /* Alert */
 code span.an { color: #5e5e5e; } /* Annotation */
-code span.at { } /* Attribute */
+code span.at { color: #657422; } /* Attribute */
 code span.bn { color: #ad0000; } /* BaseN */
 code span.bu { } /* BuiltIn */
-code span.cf { color: #007ba5; } /* ControlFlow */
+code span.cf { color: #00769e; } /* ControlFlow */
 code span.ch { color: #20794d; } /* Char */
 code span.cn { color: #8f5902; } /* Constant */
 code span.co { color: #5e5e5e; } /* Comment */
@@ -73,9 +74,9 @@ code span.fl { color: #ad0000; } /* Float */
 code span.fu { color: #4758ab; } /* Function */
 code span.im { } /* Import */
 code span.in { color: #5e5e5e; } /* Information */
-code span.kw { color: #007ba5; } /* Keyword */
+code span.kw { color: #00769e; } /* Keyword */
 code span.op { color: #5e5e5e; } /* Operator */
-code span.ot { color: #007ba5; } /* Other */
+code span.ot { color: #00769e; } /* Other */
 code span.pp { color: #ad0000; } /* Preprocessor */
 code span.sc { color: #5e5e5e; } /* SpecialChar */
 code span.ss { color: #20794d; } /* SpecialString */
@@ -526,6 +527,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   d-article table.gt_table td,
   d-article table.gt_table th {
     border-bottom: none;
+    font-size: 100%;
   }
 
   .html-widget {
@@ -767,10 +769,6 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     position: relative;
     margin-bottom: 2.5em;
     margin-top: 1.5em;
-  }
-
-  .figure img {
-    width: 100%;
   }
 
   .figure .caption {
@@ -1602,9 +1600,21 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
       // hoverable references
       $('span.citation[data-cites]').each(function() {
+        const citeChild = $(this).children()[0]
+        // Do not process if @xyz has been used without escaping and without bibliography activated
+        // https://github.com/rstudio/distill/issues/466
+        if (citeChild === undefined) return true
+
+        if (citeChild.nodeName == "D-FOOTNOTE") {
+          var fn = citeChild
+          $(this).html(fn.shadowRoot.querySelector("sup"))
+          $(this).id = fn.id
+          fn.remove()
+        }
         var refs = $(this).attr('data-cites').split(" ");
         var refHtml = refs.map(function(ref) {
-          return "<p>" + $('#ref-' + ref).html() + "</p>";
+          // Could use CSS.escape too here, we insure backward compatibility in navigator
+          return "<p>" + $('div[id="ref-' + ref + '"]').html() + "</p>";
         }).join("\n");
         window.tippy(this, {
           allowHTML: true,
@@ -1616,6 +1626,31 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
           placement: 'bottom-start'
         });
       });
+
+      // fix footnotes in tables (#411)
+      // replacing broken distill.pub feature
+      $('table d-footnote').each(function() {
+        // we replace internal showAtNode methode which is triggered when hovering a footnote
+        this.hoverBox.showAtNode = function(node) {
+          // ported from https://github.com/distillpub/template/pull/105/files
+          calcOffset = function(elem) {
+              let x = elem.offsetLeft;
+              let y = elem.offsetTop;
+              // Traverse upwards until an `absolute` element is found or `elem`
+              // becomes null.
+              while (elem = elem.offsetParent && elem.style.position != 'absolute') {
+                  x += elem.offsetLeft;
+                  y += elem.offsetTop;
+              }
+
+              return { left: x, top: y };
+          }
+          // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetTop
+          const bbox = node.getBoundingClientRect();
+          const offset = calcOffset(node);
+          this.show([offset.left + bbox.width, offset.top + bbox.height]);
+        }
+      })
 
       // clear polling timer
       clearInterval(tid);
@@ -1715,6 +1750,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     // mark non-body figures created by knitr chunks as 100% width
     $('.layout-chunk').each(function(i, val) {
       var figures = $(this).find('img, .html-widget');
+      // ignore leaflet img layers (#106)
+      figures = figures.filter(':not(img[class*="leaflet"])')
       if ($(this).attr('data-layout') !== "l-body") {
         figures.css('width', '100%');
       } else {
@@ -1737,7 +1774,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     // get rid of index.html references in header
     if (window.location.protocol !== "file:") {
       $('.distill-site-header a[href]').each(function(i,val) {
-        $(this).attr('href', $(this).attr('href').replace("index.html", "./"));
+        $(this).attr('href', $(this).attr('href').replace(/^index[.]html/, "./"));
       });
     }
 
@@ -2214,7 +2251,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     color: var(--hover-color, white);
   }</style>
   <!--/radix_placeholder_distill-->
-  <script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+  <script src="site_libs/header-attrs-2.18/header-attrs.js"></script>
   <script src="site_libs/popper-2.6.0/popper.min.js"></script>
   <link href="site_libs/tippy-6.2.7/tippy.css" rel="stylesheet" />
   <link href="site_libs/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />
@@ -2273,92 +2310,67 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
 <div class="d-article">
-<p>This is the landing page for exploring developmental sequences for a
-variety of species with differing gender systems (gonochoristic,
-hermaphroditic), oocyte development (synchronous, asynchronous, group
-synchronous), and spawning types (egg layers [demersal or pelagic], live
-bearers). Fish with images have full pdf developmental sequences using
-the MARVLS template, otherwise the publication is linked with the
-histological figures.</p>
+<p>This is the landing page for exploring developmental sequences for a variety of species with differing gender systems (gonochoristic, hermaphroditic), oocyte development (synchronous, asynchronous, group synchronous), and spawning types (egg layers [demersal or pelagic], live bearers). Fish with images have full pdf developmental sequences using the MARVLS template, otherwise the publication is linked with the histological figures.</p>
 <h2 id="clupeiformes">Clupeiformes</h2>
 <h3 id="clupeidae">Clupeidae</h3>
-<p><a
-href="http://www.publish.csiro.au/nid/126/paper/MF08211.htm"><em>Acanthocybium
-solandri</em> (Wahoo) publication see Fig. 3</a></p>
+<p><a href="http://www.publish.csiro.au/nid/126/paper/MF08211.htm"><em>Acanthocybium solandri</em> (Wahoo) publication see Fig. 3</a></p>
 <p><br></p>
-<p><a href="http://dx.doi.org/10.1080/00028487.2013.862178"><em>Alosa
-sapidissima</em> (American Shad) publication see Fig. 1</a></p>
+<p><a href="http://dx.doi.org/10.1080/00028487.2013.862178"><em>Alosa sapidissima</em> (American Shad) publication see Fig. 1</a></p>
 <p><br></p>
 <h2 id="scombriformes">Scombriformes</h2>
 <h3 id="scombridae">Scombridae</h3>
-<p><a
-href="http://www.publish.csiro.au/nid/126/paper/MF08211.htm"><em>Acanthocybium
-solandri</em> (Wahoo) publication see Fig. 3</a> <br></p>
+<p><a href="http://www.publish.csiro.au/nid/126/paper/MF08211.htm"><em>Acanthocybium solandri</em> (Wahoo) publication see Fig. 3</a>
+<br></p>
 <h2 id="lophiiformes">Lophiiformes</h2>
 <h3 id="lophiidae">Lophiidae</h3>
-<p><a href="http://dx.doi.org/10.1111/jfb.13272"><em>Lophius
-americanus</em> (Goosefish) publication see Fig. 2</a> <br></p>
+<p><a href="http://dx.doi.org/10.1111/jfb.13272"><em>Lophius americanus</em> (Goosefish) publication see Fig. 2</a>
+<br></p>
 <h2 id="perciformes">Perciformes</h2>
 <h3 id="coryphaenidae">Coryphaenidae</h3>
-<p><a href="http://dx.doi.org/10.5343/bms.2011.1096"><em>Coryphaena
-hippurus</em> (Dolphinfish) publication see Fig. 1</a> <br></p>
-<h3 id="hemiramphidae">Hemiramphidae</h3>
-<p><a href="http://dx.doi.org/10.2307/1543496"><em>Hemiramphus
-brasiliensis</em> and <em>H. balao</em> (Ballyhoo halfbeak) publication
-see Fig. 4</a> <br></p>
-<h3 id="labridae">Labridae</h3>
-<p><a
-href="http://dx.doi.org/10.1111/j.1095-8649.2007.01580.x"><em>Lachnolaimus
-maximus</em> (Hogfish) publication see Fig. 2 &amp; Fig. 7</a> <br></p>
-<h3 id="acanthuridae">Acanthuridae</h3>
-<p><a href="https://doi.org/10.1007/s10641-016-0566-x"><em>Acanthurus
-triostegus</em> (Convict Tang) publication see Fig. 2</a> <br></p>
-<h3 id="malacanthidae">Malacanthidae</h3>
-<p><a href="https://doi.org/10.7755/FB.111.2.4"><em>Lopholatilus
-chamaeleonticeps</em> (Tilefish) publication see Fig. 5</a> <br></p>
-<h3 id="carangidae">Carangidae</h3>
-<p><a href="http://dx.doi.org/10.1007/s00227-001-0759-4"><em>Decapterus
-punctatus</em> (Round Scad) publication see Fig. 4</a> <br></p>
-<p><a href="https://doi.org/10.1016/j.fishres.2018.11.026"><em>Trachurus
-trachurus</em> (Horse Mackerel) publication see Fig. 2</a> <br></p>
-<h3 id="kuhliidae">Kuhliidae</h3>
-<p><img src="images/kuhlia.jpg" style="width:25.0%" /> <a
-href="https://drive.google.com/file/d/12jMayyP5BzFZ2_ug9O-kG8HBP1fShI7w/view?usp=sharing"><em>Kuhlia
-xenura</em> (Hawaii flagtail)</a></p>
-<p><br></p>
-<h3 id="serranidae">Serranidae</h3>
-<p><img src="images/roi.png" style="width:25.0%" /> <a
-href="https://drive.google.com/file/d/12aLBaZq41gWny1YG75hJJ2zCpA8c6roV/view?usp=sharing"><em>Cephalopholis
-argus</em> (Peacock Grouper)</a>. <a
-href="http://dx.doi.org/10.1111/j.1095-8649.2007.01580.x">Publication
-see Fig. 2 &amp; Fig. 3</a></p>
-<p><br></p>
-<p><a href="https://doi.org/10.18785/goms.2701.04"><em>Pronotogrammus
-martinicensis</em> (Roughtongue Bass) publication see Fig. 2</a>
+<p><a href="http://dx.doi.org/10.5343/bms.2011.1096"><em>Coryphaena hippurus</em> (Dolphinfish) publication see Fig. 1</a>
 <br></p>
+<h3 id="hemiramphidae">Hemiramphidae</h3>
+<p><a href="http://dx.doi.org/10.2307/1543496"><em>Hemiramphus brasiliensis</em> and <em>H. balao</em> (Ballyhoo halfbeak) publication see Fig. 4</a>
+<br></p>
+<h3 id="labridae">Labridae</h3>
+<p><a href="http://dx.doi.org/10.1111/j.1095-8649.2007.01580.x"><em>Lachnolaimus maximus</em> (Hogfish) publication see Fig. 2 &amp; Fig. 7</a>
+<br></p>
+<h3 id="acanthuridae">Acanthuridae</h3>
+<p><a href="https://doi.org/10.1007/s10641-016-0566-x"><em>Acanthurus triostegus</em> (Convict Tang) publication see Fig. 2</a>
+<br></p>
+<h3 id="malacanthidae">Malacanthidae</h3>
+<p><a href="https://doi.org/10.7755/FB.111.2.4"><em>Lopholatilus chamaeleonticeps</em> (Tilefish) publication see Fig. 5</a>
+<br></p>
+<h3 id="carangidae">Carangidae</h3>
+<p><a href="http://dx.doi.org/10.1007/s00227-001-0759-4"><em>Decapterus punctatus</em> (Round Scad) publication see Fig. 4</a>
+<br></p>
+<p><a href="https://doi.org/10.1016/j.fishres.2018.11.026"><em>Trachurus trachurus</em> (Horse Mackerel) publication see Fig. 2</a>
+<br></p>
+<h3 id="kuhliidae">Kuhliidae</h3>
+<p><img src="images/kuhlia.jpg" style="width:25.0%" /> <a href="https://drive.google.com/file/d/12jMayyP5BzFZ2_ug9O-kG8HBP1fShI7w/view?usp=sharing"><em>Kuhlia xenura</em> (Hawaii flagtail)</a></p>
+<p><br></p>
 <h3 id="lutjanidae">Lutjanidae</h3>
-<p><img src="images/gindai.png" style="width:25.0%" /> <a
-href="https://drive.google.com/file/d/1UKJy_CWqEUjtIK1jaOa_pzXwWP7qftJU/view?usp=sharing"><em>Prisitpomoides
-zonatus</em> (Gindai or Oblique-Banded Snapper)</a>. <a
-href="https://doi.org/10.1071/MF21094">Publication see Fig. 7</a></p>
+<p><img src="images/gindai.png" style="width:25.0%" /> <a href="https://drive.google.com/file/d/1UKJy_CWqEUjtIK1jaOa_pzXwWP7qftJU/view?usp=sharing"><em>Prisitpomoides zonatus</em> (Gindai or Oblique-Banded Snapper)</a>. <a href="https://doi.org/10.1071/MF21094">Publication see Fig. 7</a>
+<br></p>
+<h3 id="serranidae">Serranidae</h3>
+<p><img src="images/roi.png" style="width:25.0%" /> <a href="https://drive.google.com/file/d/12aLBaZq41gWny1YG75hJJ2zCpA8c6roV/view?usp=sharing"><em>Cephalopholis argus</em> (Peacock Grouper)</a>. <a href="http://dx.doi.org/10.1111/j.1095-8649.2007.01580.x">Publication see Fig. 2 &amp; Fig. 3</a></p>
+<p><br></p>
+<p><a href="https://doi.org/10.18785/goms.2701.04"><em>Pronotogrammus martinicensis</em> (Roughtongue Bass) publication see Fig. 2</a>
+<br></p>
+<h3 id="anarhichadidae">Anarhichadidae</h3>
+<p><a href="https://doi.org/10.1002/mcf2.10222"><em>Anarhichas lupus</em> (US Atlantic Wolffish) publication see Fig. 5</a></p>
 <h2 id="pleuronectiformes">Pleuronectiformes</h2>
 <h3 id="pleuronectidae">Pleuronectidae</h3>
-<p><a href="http://doi.org/10.1111/jfb.12431"><em>Pseudopleuronectes
-americanus</em> (Winter Flounder-Females) publication see Fig. 2 &amp;
-Fig. 3</a> <br></p>
-<p><a
-href="https://doi.org/10.1016/j.fishres.2019.02.006"><em>Pseudopleuronectes
-americanus</em> (Winter Flounder-Males) publication see Fig. 2</a>
+<p><a href="https://journal.nafo.int/dnn/Volumes/Articles/ID/676/Evaluating-growth-dimorphism-maturation-and-skip-spawning-of-Atlantic-halibut-in-the-Gulf-of-Maine-using-a-collaborative-research-approach"><em>Hippoglossus hippoglossus</em> (Atlantic halibut) publication see Fig. 3</a>
+<br></p>
+<p><a href="http://doi.org/10.1111/jfb.12431"><em>Pseudopleuronectes americanus</em> (Winter Flounder-Females) publication see Fig. 2 &amp; Fig. 3</a>
+<br></p>
+<p><a href="https://doi.org/10.1016/j.fishres.2019.02.006"><em>Pseudopleuronectes americanus</em> (Winter Flounder-Males) publication see Fig. 2</a>
 <br></p>
 <h2 id="mugiliformes">Mugiliformes</h2>
 <h3 id="mugilidae">Mugilidae</h3>
-<p><img src="images/kanda.png" style="width:25.0%" /> <a
-href="https://drive.google.com/file/d/1D1GlNkhDop8oo7KlZ_fMVnk6rVcgUGOh/view?usp=sharing"><em>Osteomugil
-engeli</em> (Kanda Mullet)</a>. <a
-href="https://link.springer.com/article/10.1007/s10641-019-00853-y">Publication
-see Fig. 2 &amp; Fig. 3</a></p>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<p><img src="images/kanda.png" style="width:25.0%" /> <a href="https://drive.google.com/file/d/1D1GlNkhDop8oo7KlZ_fMVnk6rVcgUGOh/view?usp=sharing"><em>Osteomugil engeli</em> (Kanda Mullet)</a>. <a href="https://link.springer.com/article/10.1007/s10641-019-00853-y">Publication see Fig. 2 &amp; Fig. 3</a></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

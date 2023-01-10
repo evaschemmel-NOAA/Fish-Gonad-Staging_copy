@@ -70,6 +70,12 @@ This is the landing page for exploring developmental sequences for a variety of 
 
 <br>
 
+### Lutjanidae
+
+
+![](images/gindai.png){width=25%}  [*Prisitpomoides zonatus* (Gindai or Oblique-Banded Snapper)](https://drive.google.com/file/d/1UKJy_CWqEUjtIK1jaOa_pzXwWP7qftJU/view?usp=sharing). [Publication see Fig. 7](https://doi.org/10.1071/MF21094)
+<br>
+
 ### Serranidae
 
 
@@ -81,19 +87,24 @@ This is the landing page for exploring developmental sequences for a variety of 
 [*Pronotogrammus martinicensis* (Roughtongue Bass) publication see Fig. 2](https://doi.org/10.18785/goms.2701.04)
 <br>
 
-### Lutjanidae
 
+### Anarhichadidae
 
-![](images/gindai.png){width=25%}  [*Prisitpomoides zonatus* (Gindai or Oblique-Banded Snapper)](https://drive.google.com/file/d/1UKJy_CWqEUjtIK1jaOa_pzXwWP7qftJU/view?usp=sharing). [Publication see Fig. 7](https://doi.org/10.1071/MF21094)
+[*Anarhichas lupus* (US Atlantic Wolffish) publication see Fig. 5](https://doi.org/10.1002/mcf2.10222)
+
 
 ## Pleuronectiformes
 ### Pleuronectidae
+
+[*Hippoglossus hippoglossus* (Atlantic halibut) publication see Fig. 3](https://journal.nafo.int/dnn/Volumes/Articles/ID/676/Evaluating-growth-dimorphism-maturation-and-skip-spawning-of-Atlantic-halibut-in-the-Gulf-of-Maine-using-a-collaborative-research-approach)
+<br>
 
 [*Pseudopleuronectes americanus* (Winter Flounder-Females) publication see Fig. 2 & Fig. 3](http://doi.org/10.1111/jfb.12431)
 <br>
 
 [*Pseudopleuronectes americanus* (Winter Flounder-Males) publication see Fig. 2](https://doi.org/10.1016/j.fishres.2019.02.006)
 <br>
+
 
 ## Mugiliformes
 ### Mugilidae
