@@ -1,0 +1,696 @@
+---
+title: 'Analysis of Wolffish Data, Reproduction, a supplement to:'
+subtitle: |
+  A life history study of Atlantic wolffish resolves bias and imprecision in maturity schedules by recognizing abortive maturation |
+  To accompany the main article in *Marine and Coastal Fisheries*.
+author: "Richard McBride, Yvonna Press, George Maynard"
+date: "June 27, 2022"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup knitr and initial R libraries , warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate); library(tidyverse); library (knitr) # used for data wrangling
+```
+
+
+## Introduction
+
+This R markdown documents is used for auditing data and archiving analyses for a research study of Atlantic wolffish _Anarhichas lupus_ reproduction. George Maynard started this code for an Atlantic halibut project, and additional analyses were added in from code developed by Yvonna Press. 
+
+We begin by calling up and wrangling the source data file for this study. 
+
+```{r read in and wrangle data, warning=FALSE, message=FALSE}
+
+setwd ('C://Users/Richard.Mcbride/Documents/Enhanced_ff/Data_Poor_wolffish/DATA.ANALYSES/DataFiles_RMarkdownSummary')
+datmat <- read_csv('Copy101421All_Wolffish_Data_08_30_2019.csv')
+
+# 1. Delete some rows, specifically delete males
+  datmat <-datmat[datmat$SEX.y=='F',]    #remove any but females
+
+# 2. Change a few variable names or their format to match code
+datmat <- datmat %>% 
+  mutate(CollectionDate = as.Date(TOWDATE, "%d-%b-%y"))  %>%
+  mutate(Length         = as.numeric(TL_cm))  %>%
+  mutate(Age            = as.numeric(sec_consensus))  %>%
+  transform(MATURITY=factor(MATURITY,levels=c("I","D","R","U","S","T", "X"))) %>%
+  mutate(monfac         = as.factor(MONTH))  %>%
+  mutate(CollectionLongitude = DECDEG_BEGLON)  %>%
+  mutate(CollectionLatitude  = DECDEG_BEGLAT) 
+  
+# 3. Derive 4 seasons, with December as the start of the winter quarter
+ quart <- setNames (rep(c('Winter', 'Spring', 'Summer', 'Fall'), each = 3), c(12, 1:11))
+  datmat$Season <- unname(quart[as.character(datmat$MONTH)])
+   datmat <- datmat %>% transform(Season = factor(Season, levels=c('Winter', 'Spring', 'Summer', 'Fall'))) 
+```
+
+Subsequent major sections are:
+
+- Sample sizes and the female size and age in our database
+- Plotting a map of the female samples
+- Female oogenesis and gonad development
+- Reproductive seasonality
+- Abortive maturation and size and age at maturity
+
+## Sample sizes and the female size and age in our database
+
+There are `r nrow(datmat)` records of females. Here is a quick confirmation of the sample sizes by date (Month, Year) and by source: the NEFSC bottom trawl survey (NEFSC.BTS), the NEFSC longline survey (NEFSC.LL), the NEFSC study fleet (NEFSC.SF), a UNH/commerical bottom trawl collaboration (UNH.trawl), and UNH/commercial lobster pot collaboartion (UNH.pot).
+
+```{r two tables, warning=FALSE, message=FALSE}
+n_mon_yr <- table(datmat$MONTH, datmat$YEAR)
+ n_mon_yr2 <-addmargins(n_mon_yr, margin = seq_along(dim(n_mon_yr)), FUN = sum, quiet = FALSE)
+  kable(n_mon_yr2, caption = 'Number of fish by sample month and year')
+
+n_gear_yr <- table(datmat$GEAR, datmat$YEAR)
+ n_gear_yr2 <- addmargins(n_gear_yr, margin = seq_along(dim(n_gear_yr)), FUN = sum, quiet = FALSE)
+  kable(n_gear_yr2, caption = 'Number of fish by sample source and year')
+  
+#You can use write_csv (objectname, "filename.csv") to save a table
+
+``` 
+
+We dress these sample size summaries up as colored figures.
+
+```{r Summarize with barplots or histograms, warning=FALSE, message=FALSE}
+
+library (viridis)
+
+datmat.n <- datmat %>% 
+   drop_na(YEAR)
+
+ggplot (datmat.n)  +
+  geom_bar(mapping = aes (x = factor(YEAR), fill = GEAR)) +
+   #theme (legend.position = 'top') +
+   labs (x = 'Year', y = "Frequency") +
+  scale_fill_viridis_d ()
+
+ggsave("WolfFigYEARxGEAR.png")
+
+ggplot (datmat.n)  +
+  geom_bar(mapping = aes (x = factor(MONTH), fill = GEAR)) +
+  #theme (legend.position = 'top') +
+  labs (x = 'Month', y = "Frequency") +
+  scale_fill_viridis_d ()
+
+ggsave("WolfFigMONTHxGEAR.png")
+```
+
+Here is a depiction of females wolffish size by gear, where size by gear is compared with a non-parametric Kruskal-Wallis test among the four major sampling sources (i.e. the lobster pot fish was not included because only a single fish was used in the final dataset). The commerical trawls operated by the UNH fishermen and the NEFSC study fleet caught larger fish in general, while the greatest size range was collected by the NEFSC Bottom Trawl Survey.
+
+``` {r more summaries, warning=FALSE, message=FALSE}
+library(ggpubr)
+
+datmat %>% 
+  group_by (GEAR) %>% 
+  summarize(mini = min(Length, na.rm = TRUE),
+            median = median(Length, na.rm = TRUE),
+            maxi = max(Length, na.rm = TRUE),
+            n = n())
+
+datmat.no.pot <- datmat %>% 
+   filter (GEAR != 'UNH.pot') 
+
+    kruskal.test(Length ~ GEAR, data = datmat.no.pot)
+    
+ggboxplot (datmat.no.pot, x = "GEAR", y = "Length", add = "jitter") +
+  labs (x = "Gear type", y = "Fork length (cm)") +
+  theme (legend.position = 'top') 
+ggsave ("WolfFig2.png")
+
+```
+
+Note, in the Kruskal-Wallis test, the single fish (65 cm) female collected by a lobster pot has been removed.
+
+And a quick check of ranges of female wolffish size and age by month. 
+
+``` {r size and age by month summaries , warning=FALSE, message=FALSE}
+datmat %>% 
+  group_by (MONTH) %>% 
+  summarize(mini = min(Length, na.rm = TRUE),
+            maxi = max(Length, na.rm = TRUE),
+            n = n())
+
+datmat %>% 
+  filter(Age>0) %>% 
+  group_by (MONTH) %>% 
+  summarize(mini = min(Age, na.rm = TRUE),
+            maxi = max(Age, na.rm = TRUE),
+            n = n())
+```
+
+
+## Plotting a map of where the female reproductive samples were collected
+
+The collection locations of female wolffish spanned the Gulf of Maine, including the Great South Channel and the northeast tip of Georges Bank. The density of collections were highest in the western Gulf of Maine, shown here by sampling source: the NEFSC bottom trawl survey (open triangles), the NEFSC longline survey (filled circles), the NEFSC study fleet (gray area, inidividual locations considered confidential), the UNH/commerical bottom trawl collaboration (gray diamonds), and UNH/commercial lobster pot collaboration (X).
+
+```{r map, message=FALSE, warning=FALSE}
+library(ggspatial)
+library(mapdata); library(marmap)
+library(raster); library(rgdal); library(rgeos)
+library(rnaturalearth); library(rnaturalearthdata) 
+library(sf)
+
+namerica <- ne_countries(scale = 'medium', type = 'countries', continent = 'north america', returnclass = "sf")
+
+LatClean <- datmat %>% 
+  drop_na(CollectionLatitude)
+
+datmat.sf <- st_as_sf(LatClean, coords = c('DECDEG_BEGLON','DECDEG_BEGLAT'), crs = 4326) 
+
+NEFSC.BTS.sf <- datmat.sf %>% filter (GEAR == "NEFSC.BTS")
+NEFSC.LL.sf <- datmat.sf %>% filter (GEAR == "NEFSC.LL")
+UNH.trawl.sf <- datmat.sf %>% filter (GEAR == "UNH.trawl")
+UNH.pot.sf <- datmat.sf %>% filter (GEAR == "UNH.pot")
+
+SFleet.sf <- datmat.sf %>% filter (GEAR == "NEFSC.SF") # These data are confidential so they are not plotted individually
+range(SFleet.sf$CollectionLatitude, na.rm=TRUE)
+range(SFleet.sf$CollectionLongitude, na.rm=TRUE)
+
+b <- getNOAA.bathy (lon1 = -71.5, lon2 = -64, lat1 = 39, lat2 = 45.5, res=1) # Turns out 1 is the finest resolution
+bathyLat = as.numeric(colnames(b)); bathyLon = as.numeric(rownames(b))
+bathyZ = as.numeric(b); dim(bathyZ) = dim(b)
+bf = fortify.bathy(b) # explicedly spatial?
+
+ggplot(namerica) +
+ geom_sf(fill = "darkgray") +
+geom_contour(data=bf, aes(x=x, y=y, z=z), breaks=c(-100), size=c(0.3), colour="grey") + # add 100m contour
+ geom_contour(data=bf, aes(x=x, y=y, z=z), breaks=c(-250), size=c(0.6), colour="grey") + # add 250m contour
+geom_sf(data=NEFSC.BTS.sf, x = 'CollectionLongitude', y = 'CollectionLatitude', pch = 2, size = 2.5) +
+ geom_sf(data=NEFSC.LL.sf, x = 'CollectionLongitude', y = 'CollectionLatitude', pch = 19, size = 2.5) +
+ geom_rect(data=SFleet.sf, mapping=aes( xmin=-70.46497, xmax=-69.11227, ymin=42.43253, ymax=43.02887), alpha = 0.05, linetype=2) +
+    geom_sf(data=UNH.trawl.sf, x = 'CollectionLongitude', y = 'CollectionLatitude', pch = 23, fill="grey80", size = 2.5) +
+  geom_sf(data=UNH.pot.sf, x = 'CollectionLongitude', y = 'CollectionLatitude', pch = 4, size = 2.5) +
+coord_sf( xlim = c(-71, -65), ylim = c(41, 44) ) +
+ labs(x="Longitude", y="Latitude") +
+  theme_bw( ) +
+  annotate(geom = "text", x = -67.6, y = 41.25, label = "Georges Bank", color = "grey22", size = 4.5) +
+  annotate(geom = "text", x = -67.5, y = 43.95, label = "Gulf of Maine", color = "grey22", size = 4.5) +
+ ggspatial::annotation_scale(location = 'tl') +
+  annotation_north_arrow(location = "br", which_north = "true")
+
+ggsave ("WolfFig1.png")
+```
+## Female wolffish oogenesis, tunica thickness, and gonad development
+
+We are specifically curious about fish size and age thresholds relative to the timing of the ordered stages of oogenesis. Here MAOS is an acronym for "most advanced oocyte stage." We first tabulate the seasonal patterns of oogenesis (tracked by month). Then, we look at the range of MAOS by fish length and fish age. Finally, the frequency of MAOS by age is illustrated in a lattice graph. 
+
+``` {r oogenesis}
+datmat <- datmat %>%
+  transform(MAOS = factor(MAOS,
+    levels=c("PG", "C1", "C2", "C3", "C4", "V1", "V2", "V3", "V4", "H")))
+
+n_MAOS_month <- table(datmat$MAOS, datmat$MONTH)
+addmargins(n_MAOS_month, margin = seq_along(dim(n_MAOS_month)), FUN = sum, quiet = FALSE)
+
+# Length range and samples size (n) of feamles by MAOS
+datmat %>% 
+   group_by (MAOS) %>% 
+   summarize(mini = min(Length, na.rm = TRUE),
+             maxi = max(Length, na.rm = TRUE),
+             n = n())
+
+# Age range and samples size (n) of feamles by MAOS
+datmat %>% 
+  filter(Age>0) %>% 
+  group_by (MAOS) %>% 
+  summarize(mini = min(Age, na.rm = TRUE),
+            maxi = max(Age, na.rm = TRUE),
+            n = n())
+
+library (lattice)
+
+histogram(~Age|MAOS, data=datmat, # breaks=seq(0,12,5),  
+          type="count", layout=c(5,1), col="dodgerblue4",
+          xlab="Age (years)")
+```
+
+We collected few fish in spawning condition, which would be evident by individual females with mature oocytes (i.e., neither nucleus migration nor breakdown were observed). We did, nowever, collect three females with fresh post-ovulatory follicles (i.e., POF1, table below) in October and November, verifying these two months as part of the spawning season. 
+
+``` {r  Calculate number of POFs by type and month}
+
+datpof <- datmat %>%
+  dplyr::select(monfac, POF_STAGE) 
+
+datpof[is.na(datpof)] <- 0 #changes any NA's to zero, and one of the months is a NA so we get a benign error
+ head(datpof)
+  nrow(datpof) # this is the total sample size but it includes immature fish, which inflates the fish with no POFs (see next section where that is adjusted)
+  
+tabpof <- as.data.frame(table(datpof))
+head (tabpof)
+
+# switch from long to wide format
+spread(tabpof, POF_STAGE, Freq ) %>% 
+   rename (POF0 = '0', POF1 = '1', POF2 = '2', POF3 = '3')
+
+```
+
+We did not see a post-spawning period of spent fish, those with older post-ovulatory follicles (i.e., POF2), which we attribute these gaps in coverage as a result of low sampling effort in the winter season (December-February). We did see many females with the oldest post-ovulatory follicles (POF3) from April to September, but these POFS were typically mixed in with yolked oocytes. The interpretation is that POF degeneration takes up to a year.
+
+Another important histological criterion we are using for assigning maturity class to individual fish is the thickness of the gonad wall. We assume a bimodal distribution of the gonad wall (often referred to as the tunica) thickness is a result of immature fish that have a relatively thin gonad wall, whereas fish that have spawned in the past, including skippers (by definition), have a thick gonad wall as a result of the expansion, collapse, and reworking on the gonad from the process of spawning. While we expect a bimodal distribution, the specific measurements of what constitutes thin versus thick varies by species. We can determine that here because we actually measured the tunica thickness on the histology slides of a subset of females. 
+
+```{r gonad wall thickness}
+ ggplot(data = datmat) +
+ geom_histogram(mapping = aes (x = TUNICA_MEASUREMENT)) +
+   labs (x = 'Tunica thickness (microns)', y = 'Frequency')
+ggsave("WolfFig5.png")
+
+datmat %>% 
+  group_by (TUNICA_THICKNESS) %>% 
+  summarize(mini = min  (TUNICA_MEASUREMENT, na.rm = TRUE),
+            mean = mean (TUNICA_MEASUREMENT, na.rm = TRUE),
+            sd = sd     (TUNICA_MEASUREMENT, na.rm = TRUE),
+            maxi = max  (TUNICA_MEASUREMENT, na.rm = TRUE),
+            n = n())
+
+kruskal.test(TUNICA_MEASUREMENT ~ TUNICA_THICKNESS, data = datmat)
+
+```
+
+This histogram of tunica thickness indicates an anitmode, and therefore a multiparious or skip spawner threshold, at about 250 microns. Our notation for thin (T) versus thick (K), which is assigned qualitatively by a reader in the laboratory, indicates that the mean gonad wall measurement for a thin tunica is about 1/7th (94 microns) of a thick tunica (691 microns), which was statistically different in thickness (Kruskal-Wallis, P < 0.001).
+
+The classification of MAOS and tunica thickness can be used to define classes of maturity, as follows:
+
+```{r wrangle the reproductive data, warning=FALSE, message=FALSE}
+
+datmat$HISTO_CLASS <-NA # Assign a maturity class based on histology traits
+
+sel <- ((datmat$MAOS=="PG" | datmat$MAOS=="C1"| datmat$MAOS=="C2") 
+        & datmat$POF_PRESENCE=="N" & datmat$TUNICA_THICKNESS=="T")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'I') ##Immature
+
+sel <- ((datmat$MAOS=="C2"|datmat$MAOS=="C3"|datmat$MAOS=="C4"|datmat$MAOS=="V1") 
+        & ( datmat$Season == "Summer" | datmat$Season == "Fall") 
+          & datmat$POF_PRESENCE=="N" & datmat$TUNICA_THICKNESS =="T")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'IMA') #IMMATURE MATURING - CONSIDER TIME OF YEAR--Summer and Fall
+
+sel <- ((datmat$MAOS=="C3"|datmat$MAOS=="C4"|datmat$MAOS=="V1") 
+        & ( datmat$Season == "Winter" | datmat$Season == "Spring") 
+        & datmat$POF_PRESENCE=="N" & datmat$TUNICA_THICKNESS =="T")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'FTM') #FIRST TIME MATURE - CONSIDER TIME OF YEAR--Winter and Spring
+
+sel <- ((datmat$MAOS=="C1"|datmat$MAOS=="C2"|datmat$MAOS=="C3"|datmat$MAOS=="C4") 
+     #   & datmat$TUNICA_MEASUREMENT >250 & (datmat$POF_STAGE==2|datmat$POF_STAGE==3))
+     & datmat$TUNICA_THICKNESS=="K" & (datmat$POF_STAGE==2|datmat$POF_STAGE==3))
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'RGT') #RESTING/REGENERATING
+
+sel <- ((datmat$MAOS=="H")) 
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'SA') #RIPE (spawning active)
+
+sel <- ((datmat$MAOS=="C1"|datmat$MAOS=="C2"|datmat$MAOS=="C3") & datmat$POF_STAGE==1)
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'RGS') #SPENT
+
+sel <- ((datmat$MAOS=="C4" | datmat$MAOS=="V1")
+        & (datmat$TUNICA_THICKNESS=="K"|datmat$POF_PRESENCE!="N")) 
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'ED') #Repeat Spawner
+
+#sel <- ((datmat$MAOS=="V1")
+#        & (datmat$TUNICA_THICKNESS=="K"|datmat$POF_PRESENCE!="N")) 
+#  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'ED') #Repeat Spawner
+
+  sel <- (datmat$MAOS=="V2"|datmat$MAOS=="V3"|datmat$MAOS=="V4")
+  datmat$HISTO_CLASS[sel]<- with (datmat[sel,], 'LD') ##Developing
+
+sel <- ((datmat$MAOS=="C1"| datmat$MAOS=="C2"|datmat$MAOS=="C3" ) 
+        & datmat$POF_PRESENCE=="N" & datmat$TUNICA_THICKNESS=="K" 
+        & datmat$ATRESIA_PRESENCE=="L")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'X') ##SKIP SPAWNER (resorbing)
+
+sel <- ((datmat$MAOS=="C1"| datmat$MAOS=="C2"|datmat$MAOS=="C3" ) 
+        & datmat$POF_PRESENCE=="N" & datmat$TUNICA_THICKNESS=="K" 
+        & datmat$ATRESIA_PRESENCE=="N")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'XT') #SKIP SPAWNER (resting)
+
+sel<- ((datmat$MAOS=="C1"| datmat$MAOS=="C2"|datmat$MAOS=="C3" | datmat$MAOS=="C4") 
+       & datmat$POF_PRESENCE=="N" 
+       & datmat$TUNICA_MEASUREMENT<=250 
+       & datmat$ATRESIA_PRESENCE=="L")
+  datmat$HISTO_CLASS[sel] <- with (datmat[sel,], 'ABM') ##ABORTIVE MATURATION
+
+datmat <- datmat %>%
+    transform(HISTO_CLASS = factor(HISTO_CLASS,
+    levels=c("I", "IMA", "FTM", "ABM", "ED", "LD", "SA", "RGS", "RGT", "X", "XT", "NA"))) %>%
+  transform(MATURITY = factor (MATURITY,
+    levels=c("I","D","R","U","S","T","X")))
+
+datmat$MAT01 <-NA # Assign a binary maturity class
+  tel <- (datmat$HISTO_CLASS=="I" | datmat$HISTO_CLASS=="IMA"| datmat$HISTO_CLASS=="ABM") 
+    datmat$MAT01[tel]<- with (datmat[tel,], 0) ##Immature as a binary variable
+  tel <- (datmat$HISTO_CLASS=="FTM" | datmat$HISTO_CLASS=="ED" |datmat$HISTO_CLASS=="LD"| datmat$HISTO_CLASS=="SA" |
+           datmat$HISTO_CLASS=="RGS" | datmat$HISTO_CLASS=="RGT"| datmat$HISTO_CLASS=="X" | datmat$HISTO_CLASS=="XT") 
+    datmat$MAT01[tel]<- with (datmat[tel,], 1) # Mature as a binary variable
+```
+
+Three immature classes were observed in the samples collected were: immature (I), immature, first-time maturing (IMA), and abortive (im)mature (ABM). Seven defined mature classes were possible: first-time maturing (FTM, also referred to as primiparous), early developing of a repeat spawner (ED, also referred to as multiparous), late developing (LD), actively spawning (SA, either ripe or ripe & running), spent (RGS), resting (RGT), and two possible types of skipping -- 1) resorption of the vitellogenic oocytes (X) or 2) by resting through then entire spawning season (XT). 
+
+Here we list the tables of maturity classes by month, then fish length (10cm bins), and fish age. 
+    
+``` {r tabulate HistoClasses}
+
+library(psych)
+
+# This code can be used for quality assurance and quality control, seen here for a particular fish #
+
+QAQCmatclass <- datmat %>% 
+  #filter (MATURITY != ' ' & HISTO_CLASS != ' ') %>%
+  filter (ORGANISM_ID == 137702) %>% 
+   dplyr::select (CRUISE_ID, ORGANISM_ID, MATURITY, HISTO_CLASS, SEX.x, SEX.y, TL_cm, FISH_MASS_kg, GONAD_MASS_kg, HISTO_ID)
+#nrow(QAQCmatclass)
+#QAQCmatclass
+
+n_HistoClass_MATURITY <- table(datmat$HISTO_CLASS, datmat$MATURITY)
+ n_HistoClass_MATURITY2 <- addmargins(n_HistoClass_MATURITY, margin = seq_along(dim(n_HistoClass_MATURITY)), FUN = sum, quiet = FALSE)
+  kable(n_HistoClass_MATURITY2, caption = 'Number of fish by histology-assigned maturity class assigned to an at-sea maturity')
+
+n_HistoClass_month <- table(datmat$HISTO_CLASS, datmat$MONTH)
+ n_HistoClass_month2 <- addmargins(n_HistoClass_month, margin = seq_along(dim(n_HistoClass_month)), FUN = sum, quiet = FALSE)
+  kable(n_HistoClass_month2, caption = 'Number of fish by histology-assigned maturity class and sampling month')
+  
+n_HistoClass_Length <- table(datmat$HISTO_CLASS, floor(datmat$Length/10))
+ n_HistoClass_Length2 <- addmargins(n_HistoClass_Length, margin = seq_along(dim(n_HistoClass_Length)), FUN = sum, quiet = FALSE)
+  kable(n_HistoClass_Length2, caption = 'Number of fish by histology-assigned maturity class and 10 cm length bins')
+  
+n_HistoClass_Age <- table(datmat$HISTO_CLASS, datmat$Age)
+ n_HistoClass_Age2 <- addmargins(n_HistoClass_Age, margin = seq_along(dim(n_HistoClass_Age)), FUN = sum, quiet = FALSE)
+  kable(n_HistoClass_Age2, caption = 'Number of fish by histology-assigned maturity class and age (years)')
+
+#You can use write_csv (objectname, "filename.csv") to save a table
+
+```
+
+
+## Reproductive seasonality of female wolffish
+
+We examine reproductive seasonality in three ways: first using a simple ratio of the gonad weight ratioed to the ovary-free body weight, often called the gonadosomatic index (GSI); second by plotting the seasonality of post-ovulatory follicle stages, and third by plotting the monthly proportions of maturity classes.
+
+``` {r GSI}
+
+datmat <- datmat %>%  
+  mutate(GSI2 = (as.numeric(GONAD_MASS_kg)/(FISH_MASS_kg-as.numeric(GONAD_MASS_kg)))*100)
+
+# A quick check of GSI by histo class
+datmat %>% 
+ filter(GSI2>0 & GSI2 < 30) %>% # del outliers; Templeman 1982 for max GSI=28 
+    group_by (HISTO_CLASS) %>% 
+  summarize(mini = min  (GSI2, na.rm = TRUE),
+            mean = mean (GSI2, na.rm = TRUE),
+            sd = sd     (GSI2, na.rm = TRUE),
+            maxi = max  (GSI2, na.rm = TRUE),
+            n = n())
+
+# Set up GSI data for depicting reproductive seasonality
+GSI.Matonly <- datmat %>% 
+  filter(MAT01 == 1) %>%      
+   filter(GSI2>0 & GSI2 < 30) %>%    # get rid of some outliers
+    drop_na(monfac)                   # delete one fish without month recorded
+
+# Calculate sample size for next plot
+totalgsi <- GSI.Matonly %>%
+    group_by(monfac) %>%
+    summarize(totalgsi = sum(MAT01))
+totalgsi
+nrow(GSI.Matonly)
+
+# Plot GSI of mature fish only, by month
+ggplot (data=GSI.Matonly, mapping = aes(x = monfac, y = GSI2)) +
+  geom_boxplot()  +
+  labs (x = "Month", y = 'Gonadosomatic index (%)') +
+   theme_bw ()
+
+ggsave("WolfFig8.png")
+
+
+
+
+```
+
+In this plot of mature females only, the index increases from spring to winter, peaking in September. The sudden drop in October, which persists into November, indicates spawning occurred. The oocyte diameter distributions presented in the main paper indicate that wolffish exhibit group-synchronous oocyte development with respect to vitellogenesis. Wolffish also appear to be total spawners, meaning they ovulate all their advanced oocytes in a single wave. 
+
+This seasonality and evidence for for October-November spawning is depicted in this proportional plot of post-ovulatory follicles stages.
+
+``` {r POF stages by month}
+
+datpof2 <- datmat %>%
+  filter(MAT01 == 1) %>% 
+  dplyr::select (monfac, POF_STAGE) 
+datpof2[is.na(datpof2)] <- 0 #changes any NA's to zero
+# head(datpof2)
+  nrow(datpof2) # this is the sample size for mature females only
+
+tabpof2 <- as.data.frame(table(datpof2))
+
+# switch from long to wide format
+spread(tabpof2, POF_STAGE, Freq ) %>% 
+   rename (POF0 = '0', POF1 = '1', POF2 = '2', POF3 = '3')
+
+
+ggplot(tabpof2, aes(fill=POF_STAGE, y=Freq, x=monfac)) + 
+         geom_bar(position="fill", stat="identity") +
+            scale_fill_viridis_d()
+
+```
+
+
+```{r monthly HistoClass}
+
+MATmat <- datmat %>% 
+  filter(MAT01 == 1) %>%      
+    drop_na(monfac)  
+
+# Calculate sample size for next plot
+totals <- MATmat %>%
+    group_by(monfac) %>%
+    summarize(total = sum(MAT01))
+
+totals
+nrow(MATmat)
+
+# Plt stacked maturity classes by month
+ggplot (data=MATmat) +
+  geom_bar (mapping = aes (x=monfac, fill=HISTO_CLASS), position = "fill", color="black") +
+    scale_fill_grey (start=0, end = 1.0, name="HISTO_CLASS", 
+      labels = c("First Mature", "Repeat Mature", "Developing", "Ripe", "Spent", "Resting", "Skipper")) +
+   #    labels = c("FTM", "ED", "LD", "SA", "RGS", "RGT", "X")) +
+   labs (x = "Month", y = 'Percent frequency') +
+   theme_bw()
+  
+ggsave("WolfFig9.png")
+
+```
+ 
+## Abortive maturation
+
+Before we estimate size and age at female maturity, we call attention to the indications of abortive maturation evident in the assignment of maturity classes based on the histology (See Class ABM in the tables above). During spring, females mature as either primiparous (FTM; first-time spawner) or multiparious (ED; repeat spawner) individuals but some of these primiparous are aborting that advanced cohort, based on evidence of extensive atresia later in the summer or fall. 
+
+``` {r ABM demo}
+
+ABM1 <- datmat %>%
+  drop_na(MAT01) %>% 
+  filter(!HISTO_CLASS %in% c("I", "IMA")) %>% # Select ABM and the mature classes
+  filter(Season == "Spring" | Season == 'Fall')
+
+
+L_ABM <- ABM1 %>% 
+  drop_na(Length) 
+
+ggplot(L_ABM, aes(x=Length)) + 
+  geom_histogram(fill = "gray", color="black") + 
+  geom_histogram(data = subset(L_ABM, MAT01 == 1)) +
+  xlab("Total Length (cm)") + ylab("Frequency") +
+  facet_wrap(~ Season, nrow=2) +
+  theme_bw()
+
+ggsave("WolfFig10a.png")
+
+A_ABM <- ABM1 %>% 
+  drop_na(Age)
+  
+ggplot(A_ABM, aes(x=Age)) + 
+  geom_histogram(fill = "gray", color="black") + 
+  geom_histogram(data = subset(A_ABM, MAT01 == 1)) +
+  xlab("Age (years)") + ylab("Frequency") +
+  facet_wrap(~ Season, nrow=2) +
+  theme_bw()
+
+ggsave("WolfFig10b.png")
+
+```
+
+Females demonstrating abortive maturation, the lighter shade of gray in the plots, are smaller and younger on average than other mature females. This is not surprisingly, in that it is consistent with expected energetic constraints (i.e., smaller and younger fish start vitellogenesis but don't have sufficient resources to carry the vitellogenic cohort to ovulation). We see that here:
+
+```{r ABM comparisons}
+
+L_ABM$ABMx <-NA
+
+L_ABM <- L_ABM %>%
+  filter (Season=='Fall') %>% 
+  mutate (ABMx = if_else (HISTO_CLASS == 'ABM', "AbortNotMat",  "OtherMat"))
+    
+L_ABM %>% 
+  group_by (ABMx) %>% 
+  summarize(mini = min  (Length, na.rm = TRUE),
+            mean = mean (Length, na.rm = TRUE),
+            sd = sd     (Length, na.rm = TRUE),
+            maxi = max  (Length, na.rm = TRUE),
+            n = n())
+
+A_ABM$ABMx <-NA
+
+A_ABM <- A_ABM %>%
+  filter (Season=='Fall') %>% 
+  mutate (ABMx = if_else (HISTO_CLASS == 'ABM', "AbortNotMat",  "OtherMat"))
+
+A_ABM %>% 
+  group_by (ABMx) %>% 
+  summarize(mini = min  (Age, na.rm = TRUE),
+            mean = mean (Age, na.rm = TRUE),
+            sd = sd     (Age, na.rm = TRUE),
+            maxi = max  (Age, na.rm = TRUE),
+            n = n())
+
+kruskal.test(Length ~ ABMx, data = L_ABM)
+kruskal.test(Age ~ ABMx, data = A_ABM)
+
+```
+
+## Size and age at female maturity
+
+We will examine size and age at maturity of the females twice, once with a canned program (sizeMat), which does bootstrapping and has some very nice diagnostics, and a second way to plot a final figure for the publication using some organically written code. 
+
+``` {r Maturity ogive, warning=FALSE, message=FALSE}
+library(MASS)
+library(car)
+library (sizeMat)
+
+# set NA free matrices for both length, age, and maturity status
+
+datmat_L <- datmat %>%
+  drop_na(Length) %>% # Select fish with lengths measured
+  drop_na(MAT01) %>%  # Select fish with maturity (0, 1) assigned
+  filter(Season == "Summer" | Season == 'Fall') # Select the period post-abortive maturation
+
+# quick check with sizeMat, use bootstrap intervals
+
+L_ogive_fq <- gonad_mature(datmat_L, varNames = c("Length", "MAT01"), inmName = 0, matName = 1, method="fq", niter = 1000)
+plot(L_ogive_fq)
+
+
+datmat_A <- datmat %>% 
+  drop_na(Age) %>% 
+  drop_na(MAT01) %>% 
+  filter(Season == "Summer" | Season == 'Fall') # Select seasons where abortive maturation can be recognized
+
+A_ogive_fq <- gonad_mature(datmat_A, varNames = c("Age", "MAT01"), inmName = 0, matName = 1, method="fq", niter = 1000)
+plot(A_ogive_fq)
+
+```
+
+Here, I want to completely control the format of the image for the publication, so I have redone the plotting and bootstrapping.
+
+```{r set up final figure, warning=FALSE}
+
+#NB: you need to run the previous check to get the boot strap parameters to roll over to this chunk
+
+par (mfcol=c(2,1))
+par(mai =  c(0.5, 1.5, 0, 0))
+par (las=1)
+
+# length first, use all data (all months)
+   maxL <- 120
+   plotL1 <- 25
+   plotL2 <- 100
+    predL <- function(cf,x) exp(cf[1]+cf[2]*x)/(1+exp(cf[1]+cf[2]*x))
+    lens <- seq(1,maxL,1)
+   
+   #The logit model
+    #fitting and bootstrapping
+      logitETt <- glm (MAT01 ~ Length, data =datmat_L, family=binomial); summary (logitETt)
+   
+BlETt <- matrix (NaN, maxL, 2); bcE <- bootCase(logitETt, B=1000)
+ for (i in 1:maxL){BlETt[i,] <- as.numeric(quantile(apply(bcE,1,predL,x=i), c(0.025, 0.975)))}
+   
+   #    insert plotting for length here
+   pETt <- predict(logitETt,data.frame(Length=lens),type="response")
+   plot (lens, pETt, type = 'l', col = 1,  xlab = '', ylab = '', xlim = c(0, maxL), ylim = c(0,1), main = "")
+   lines (lens, BlETt[,1], type = 'l', col = 4, lty=2,  xlab = '', ylab = '', xlim = c(0, maxL), ylim = c(0,1), main = "")
+     lines (lens, BlETt[,2], type = 'l', col = 4, lty=2,  xlab = '', ylab = '', xlim = c(0, maxL), ylim = c(0,1), main = "")
+   
+   rug ((datmat_L$Length[datmat_L$MAT01==0]))
+   rug ((datmat_L$Length[datmat_L$MAT01==1]), side=3)
+   #  arrows(67,.85,67,1, col="red")
+   
+   min (datmat_L$Length)
+    max (datmat_L$Length)
+     MatL.N <- length (datmat_L$Length)
+     MatL.025 <- signif(quantile(L_ogive_fq$L50_boot, probs = 0.025, na.rm = TRUE), 3)
+     MatL.50 <- signif(quantile(L_ogive_fq$L50_boot, probs = 0.5, na.rm = TRUE), 3)
+     MatL.975 <- signif(quantile(L_ogive_fq$L50_boot, probs = 0.975, na.rm = TRUE), 3)
+     
+   text (20, 0.95, "Maturity at Length (cm)")
+      text(20, 0.80, bquote(italic(n)==.(MatL.N)))
+      text (85, 0.3, bquote(italic(L)[50]==.(MatL.50)~cm))
+      text (85, 0.15, bquote(.(MatL.025)~" – "~.(MatL.975)~ "cm 95% c.l."))  
+   mtext ("Proportional mature", 2, at = -0.1, line = 3, las = 3)
+   
+# Age next, use all data (all months)
+      
+      par (las=1)
+      predL <- function(cf,x) exp(cf[1]+cf[2]*x)/(1+exp(cf[1]+cf[2]*x))
+      lens <- seq(1,20,1)
+     
+      #The logit model
+      #fitting and bootstrapping
+      logitETt <- glm (MAT01 ~ Age, data =datmat_A, family=binomial); summary (logitETt)
+     
+      BlETt <- matrix (NaN, 20, 2); bcE <- bootCase(logitETt, B=1000)
+      
+      for (i in 1:20){BlETt[i,] <- as.numeric(quantile(apply(bcE,1,predL,x=i), c(0.025, 0.975)))}
+      
+      #    insert plotting for length here
+      pETt <- predict(logitETt,data.frame(Age=lens),type="response")
+      plot (lens, pETt, type = 'l', col = 1,  xlab = '', ylab = '', xlim = c(0, 20), ylim = c(0,1), main = "")
+      lines (lens, BlETt[,1], type = 'l', col = 4, lty=2,  xlab = '', ylab = '', xlim = c(0, 20), ylim = c(0,1), main = "")
+      lines (lens, BlETt[,2], type = 'l', col = 4, lty=2,  xlab = '', ylab = '', xlim = c(0, 20), ylim = c(0,1), main = "")
+      
+      rug (jitter(datmat_A$Age[datmat_A$MAT01==0]))
+      rug (jitter(datmat_A$Age[datmat_A$MAT01==1]), side=3)
+      #  arrows(67,.85,67,1, col="red")
+      
+      min (datmat_A$Age)
+      max (datmat_A$Age)
+     MatA.N <- length (datmat_A$Age)
+     MatA.025 <- signif(quantile(A_ogive_fq$L50_boot, probs = 0.025, na.rm = TRUE), 2)
+     MatA.50 <- signif(quantile(A_ogive_fq$L50_boot, probs = 0.5, na.rm = TRUE), 2)
+     MatA.975 <- signif(quantile(A_ogive_fq$L50_boot, probs = 0.975, na.rm = TRUE), 2)
+     
+      text (3.1, 0.95, "Maturity at Age (years)")
+      text(3.1, 0.80, bquote(italic(n)==.(MatA.N)))
+      text (15, 0.3, bquote(italic(A)[50]==.(MatA.50)~yr))
+      text (15, 0.15, bquote(.(MatA.025)~" – "~.(MatA.975)~ "yr 95% c.l.")) 
+      
+      #need to save figure manually
+      
+```
+
+## Skip spawning
+
+Here we want to check for skippers. We pull the larger complete data set of females lengths and maturity and examine those fish with a thick gonad wall in the months of July-September, which precede the presumed spawning period (October).  
+``` {r skipping}     
+      skip.check <- datmat_L %>% 
+          filter(MAT01==1) %>%
+        filter (MONTH == 7 | MONTH == 8 | MONTH == 9) %>% 
+        dplyr::select(CollectionDate, TUNICA_MEASUREMENT, Length, MAOS, GSI2, Age, HISTO_CLASS, MAT01)
+
+      nrow(skip.check) # number of mature females in the period July-Sept
+      
+      skip.check %>% filter(TUNICA_MEASUREMENT > 250)
+        
+```
+
+Selection of a thick gonad wall indicates past maturity. One of these 18 fish, a 9 year old, 67 cm) does not have a cohort of vitellogenic oocytes, so it is not about to spawn in the next spawning event. It also does not have any fresh postovulatory follicles (POFs) which would have indicated that it just finished spawning recently (as POFs are understood to persist for over a year in wolffish). This indicates a skipping rate among repeat spawners at 1/18 = `r signif(1/18*100, 3)`%, and among all 35 mature females collected in these months at `r signif(1/35*100, 3)`%.
+
+## End
+
+
