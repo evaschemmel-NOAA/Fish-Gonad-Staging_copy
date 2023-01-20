@@ -1,27 +1,66 @@
 ---
 title: "Analyses"
-
 ---
 
-There are many different ways to go about reproductive analyses in R. We have created a repository for sharing R code for reproductive assessments. Each folder in the repository is a different contributed analysis. This repository is hopefully a launching off point for your own analyses and a way to share ideas and resources. An example of code shared in the repository is below. 
+There are many different ways to go about reproductive analyses in R. We have created a repository for sharing R code for reproductive assessments. Each folder in the repository is a different contributed analysis. This repository is hopefully a launching off point for your own analyses and a way to share ideas and resources. An example of code shared in the repository is below.
 
 <div>
-<div style="float: left">[Repository](https://github.com/MARVLS/Fish-Gonad-Staging/tree/main/analyses)</div> 
 
+::: {style="float: left"}
+[Repository](https://github.com/MARVLS/Fish-Gonad-Staging/tree/main/analyses)
+:::
 
-<p></p>
+<p>
+
+</p>
+
 <br/>
+
 <hr>
 
+### Size and age at maturity
+
+Size/age at maturity are both done using logistic regression and then used to solve for a reference point such as L50 (50% of the population is mature) and L95 (95% of the population is mature). It is generally agreed upon that maturity estimates are more accurate during the spawning season therefore it is good practice to subset the data to the spawning season for assessing size/age at maturity estimates. Sample size and the size/age distribution is critical to obtaining an accurate estimate. There is not a recognized minimum sample size, however I would recommend that a sample size greater than 100, ideally 300, with samples collected across the spawning season from a range of fish sizes. It is also important to think about obtaining a representative sample of the population. Since many fish species migrate to spawn, this can be harder than it appears. Males and females should generally be split into their own analyses as size/age at maturity is often different between sexes.
+
+An example is provided for size at maturity but it can easily be modified for age at maturity. I encourage you to explore more coding options and make figures in ggplot and modify them as you see fit.
+
+### Basic Maturity Model
 
 
+data \<- #######put data set in here#######
 
-### Size and age at maturity 
+\
+maturityglm \<- glm (maturity \~ 1 + length, data \<-data.frame(length = data$Length, maturity <- data$Maturity), family = binomial(link ="logit"))
 
-Size/age at maturity are both done using logistic regression and then used to solve for a reference point such as L50 (50% of the population is mature) and L95 (95% of the population is mature). It is generally agreed upon that maturity estimates are more accurate during the spawning season therefore it is good practice to subset the data to the spawning season for assessing size/age at maturity estimates. Sample size and the size/age distribution is critical to obtaining an accurate estimate. There is not a recognized minimum sample size, however I would recommend that a sample size greater than 100, ideally 300, with samples collected across the spawning season from a range of fish sizes. It is also important to think about obtaining a representative sample of the population. Since many fish species migrate to spawn, this can be harder than it appears. Males and females should generally be split into their own analyses as size/age at maturity is often different between sexes.   
+\
+###data\$Length and data\$Maturity are just calling length and maturity columns in your dataset. So just make sure you column names match these or change naming in script##
 
-An example is provided for size at maturity but it can easily be modified for age at maturity. I encourage you to explore more coding options and make figures in ggplot and modify them as you see fit. 
+\
+####You can change Length to Age####
 
+\
+summary (maturityglm) ###gives you A, B, SA, SB, and n \###\
+
+cor(data\$Length,
+
+data\$Maturity) ###gives you r##
+
+A=\
+B=\
+sA\<\
+sB\<-
+
+r \<-\
+n \<-
+
+deltamethod \<- ((sA^2)/(B^2))- ((2*A*sA*sB*r)/(B\^3))+ (((A\^2)\*(sB^2))/(B^4))\
+deltamethod
+
+1.96\*(sqrt(deltamethod)/sqrt(n)) ###Gives you 95% CI##
+
+-A/B ###Gives you L50###
+
+### Another Maturity Model Example with Data
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -29,8 +68,6 @@ setwd("~/Documents/github/Fish-Gonad-Staging/analyses/Size at maturity")
 data<-read.csv("~/Documents/github/Fish-Gonad-Staging/analyses/Size at Maturity/pzonatus_maturity.csv")
 str(data)
 ```
-
-
 
 ```{r L50, warning=FALSE, message=FALSE, results='hide'}
 #packages
@@ -130,7 +167,6 @@ l50ca <- est(coef(glm.l50ca),.5) #L50 estimate non-bootstrapped
 ```
 
 ### Basic Maturity Plot
-
 
 ```{r pplot, echo=FALSE}
 plot(lbins.l50ca$bin,lbins.l50ca$b.p,pch=19,cex.axis=1.0, cex=1.0,cex.lab=1.0, bty="l",xlab="Fork Length (cm)",ylab="Percent Mature"
